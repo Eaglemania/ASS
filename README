@@ -1,0 +1,31 @@
+ASS - A Simple Shooter
+
+Made by Eaglemania and Phyce, written in python with the pyglet multimedia library.
+
+
+
+Requirements:
+Python 2.7
+
+
+
+How to play:
+
+Space: Start the game
+WASD: Movement
+Shift: Run
+Ctrl: Slow walk
+1-7 & Mouse wheel: select weapon
+R: Reload weapon
+
+To launch the game run main.py.
+Once you hit space, enemies and mines will start spawning in waves. They won't wait for you, so if you don't kill fast enough, the enemies will swarm you! There are 2 types of enemies, one will shoot at you with a random gun, the other will walk up to you and explode. Sometimes when they die they'll drop either some ammo, health, or a temporary speed boost item
+The green circles are obstacles, that can be used as cover.
+
+
+
+About the development & state of the code:
+
+Because this project was for learning python with pyglet, we didn't plan ahead, we just added stuff. While it was very fast development most of the time and we achieved some cool things, the code became very inconsistend and overall a big mess.
+Ultimatly the progress slowed down and stopped completly due to alot of reasons (technical and personal).
+Still we hope you'll have fun getting your ASS kicked! :D
