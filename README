@@ -26,6 +26,5 @@ The green circles are obstacles, that can be used as cover.
 
 About the development & state of the code:
 
-Because this project was for learning python with pyglet, we didn't plan ahead, we just added stuff. While it was very fast development most of the time and we achieved some cool things, the code became very inconsistend and overall a big mess.
-Ultimatly the progress slowed down and stopped completly due to alot of reasons (technical and personal).
+Because this project was for learning python with pyglet, we didn't plan ahead, we just added stuff. While it was very fast development most of the time and we achieved some cool things, the code became very inconsistend and overall a big mess. The code will be eventually cleaned up in the next few months.
 Still we hope you'll have fun getting your ASS kicked! :D
