@@ -5,8 +5,6 @@ from utils import*
 from resources import*
 from shared import*
 
-#git
-
 class AnimatedSprite(pyglet.sprite.Sprite):
     #fire and forget
     #also not really need an extra class.
