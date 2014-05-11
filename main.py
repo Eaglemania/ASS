@@ -51,9 +51,6 @@ music_player = setup_music()
 ###create some stuff for testing
 player = Player(x=300, y=300)
 
-def obstacle(img, x, y, r):
-    return Obstacle(img, x, y, r)
-
 def create_enemy():
     x = randint(0, window.width)
     y = randint(0, window.height)
@@ -115,36 +112,46 @@ def on_key_press(symbol, modifiers):
 window.push_handlers(on_key_press)
 
         
-def random_level(enemies, mines, large, medium, small):
+def random_level(enemies, mines, lms=[0,0,0]):
     for n in range(mines):
         add_mine()
-    for n in range(large):
-        obstacle(Resources.Image.Obstacle.large, randint(0, window.width), randint(0, window.height), 64)
 
-    for n in range(medium):
-        obstacle(Resources.Image.Obstacle.medium, randint(0, window.width), randint(0, window.height), 32)
+    """
+    size = 8
+    for n in range(lms):
+        size =* 2
+        for i in n:
+            Obstacle(Resources.Image.Obstacle.large, randint(0, window.width), randint(0, window.height), size)
 
-    for n in range(small):
-        obstacle(Resources.Image.Obstacle.small, randint(0, window.width), randint(0, window.height), 16)
+    """
+
+    for n in range(lms[0]):
+        Obstacle(Resources.Image.Obstacle.large, randint(0, window.width), randint(0, window.height), 64)
+
+    for n in range(lms[1]):
+        Obstacle(Resources.Image.Obstacle.medium, randint(0, window.width), randint(0, window.height), 32)
+
+    for n in range(lms[2]):
+        Obstacle(Resources.Image.Obstacle.small, randint(0, window.width), randint(0, window.height), 16)
 
     for n in range(enemies):
         create_enemy()
 
 def level():
-    obstacle(Resources.Image.Obstacle.large, 200, 200, 64)
+    Obstacle(Resources.Image.Obstacle.large, 200, 200, 64)
     
-    obstacle(Resources.Image.Obstacle.medium, 270, 200, 32)
-    obstacle(Resources.Image.Obstacle.medium, 300, 200, 32)
+    Obstacle(Resources.Image.Obstacle.medium, 270, 200, 32)
+    Obstacle(Resources.Image.Obstacle.medium, 300, 200, 32)
     
-    obstacle(Resources.Image.Obstacle.medium, 200, 270, 32)
-    obstacle(Resources.Image.Obstacle.medium, 200, 300, 32)
+    Obstacle(Resources.Image.Obstacle.medium, 200, 270, 32)
+    Obstacle(Resources.Image.Obstacle.medium, 200, 300, 32)
     
-    obstacle(Resources.Image.Obstacle.large, 650, 150, 64)
-    obstacle(Resources.Image.Obstacle.large, 650, 200, 64)
-    obstacle(Resources.Image.Obstacle.large, 650, 100, 64)
+    Obstacle(Resources.Image.Obstacle.large, 650, 150, 64)
+    Obstacle(Resources.Image.Obstacle.large, 650, 200, 64)
+    Obstacle(Resources.Image.Obstacle.large, 650, 100, 64)
 
 #level()
-random_level(0, 0, 5, 7, 9)
+random_level(0, 0, [5, 7, 9])
 
 def reposition_listener(dt):
     listener.position=(player.x, player.y, 0)
