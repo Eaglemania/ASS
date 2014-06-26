@@ -1,37 +1,32 @@
+"""
+    info writing for dummies:
+
+    What it does:
+        Stores stuff other stuff might need, like window, batch, groups.
+
+    How to use:
+        Import shared, get stuff!
+        
+"""
 import pyglet
- 
+from pyglet.graphics import OrderedGroup
+from pyglet.window.key import *
+
 window = pyglet.window.Window(width = 1280, height = 720 , resizable = True, vsync = False)
 batch = pyglet.graphics.Batch()
 
-background = pyglet.graphics.OrderedGroup(0)
-burned = pyglet.graphics.OrderedGroup(1)
-middleground = pyglet.graphics.OrderedGroup(2)
-decals = pyglet.graphics.OrderedGroup(3)
-foreground = pyglet.graphics.OrderedGroup(4)
-effects = pyglet.graphics.OrderedGroup(5)
-hud = pyglet.graphics.OrderedGroup(6)
+drawables = [batch]
 
-collision_objects = []
+render_groups = {}
+render_groups["default"] = OrderedGroup(0)
+render_groups["background"] = OrderedGroup(1)
+render_groups["burned"] = OrderedGroup(2)
+render_groups["middleground"] = OrderedGroup(3)
+render_groups["decals"] = OrderedGroup(4)
+render_groups["foreground"] = OrderedGroup(5)
+render_groups["effects"] = OrderedGroup(6)
+render_groups["hud"] = OrderedGroup(7)
 
-def run_pyglet(show_fps=True, max_fps=True):
-    if max_fps:
-        def max_fps(dt):
-            pass
-        pyglet.clock.schedule(max_fps)
-        
-    if show_fps:
-        
-        fps_display = pyglet.clock.ClockDisplay()
-        @window.event
-        def on_draw():
-            window.clear()
-            batch.draw()
-            fps_display.draw()
-    else:
-        
-        @window.event
-        def on_draw():
-            window.clear()
-            batch.draw()
-
-    pyglet.app.run()
+keys = {}
+keys["draw_fps"] = F
+keys["spam_events"] = E

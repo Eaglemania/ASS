@@ -2,6 +2,10 @@ import pyglet
 from math import atan2, degrees, sqrt, pi, sin, cos, radians
 from random import uniform, choice
 
+#lazy functions
+def RenderGroup(order, parent = None):
+    return pyglet.graphics.OrderedGroup(order, parent)
+
 def cutoff(val, cutoff):
     if -cutoff < val < cutoff:
         val = 0

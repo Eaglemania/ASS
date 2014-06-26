@@ -20,7 +20,7 @@ def col_with(x,y,r,obj):
 
 def check_col(x,y,r,checker):
     #put all colliders in self.collisions, run on_collision (for both objects??)
-    for obj in collision_objects:
+    for obj in checker.collision_group.colliders():
         if obj != checker and col_with(x,y,r,obj):
             return angle_between_xy(x,y,obj), distance_between_xy(x,y,obj)
     return False, False
@@ -52,9 +52,7 @@ class Enemy(Unit):
         self.target = None
         self.firing = False
         self.avoid_angle = 0
-        #self.avoid_sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = hud)
-        #self.a_a_sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = hud)
-        #self.w_sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = hud)
+
         
     def los_points(self, quality):
         ang = angle_between(self, self.target)
@@ -68,7 +66,7 @@ class Enemy(Unit):
             
     def los(self, target):
         quality = 32
-        for obj in collision_objects:
+        for obj in self.collision_group.colliders():
             if obj != self and not isinstance(obj, Player):
                     for point in self.los_points(quality):
                         if intersect(point, obj):
@@ -283,7 +281,7 @@ class Bomber(Enemy):
                 self.trigger()
         super(Bomber, self).on_collision(obj)
 
-def add_enemy():
+def random_enemy():
     if randint(0, 100) < 30:
         return Bomber(Resources.Image.Enemy.bomber, randint(0, window.width), randint(0, window.height), 24, 150, 100)
     else:

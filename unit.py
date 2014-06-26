@@ -25,7 +25,7 @@ class Unit(DynamicObject):
     for collision to work the unit must be added to and ONLY to collision_objects,
     there can not be any reference of the object outside of collision_objects or the unit won't get cleaned up properly
     """
-    def __init__(self, image, x, y, radius, health, max_speed, render_group = foreground, collision_group = collision_objects): 
+    def __init__(self, image, x, y, radius, health, max_speed, render_group = render_groups["middleground"], collision_group = collision_groups["unit"]): 
         super(Unit, self).__init__(image, x, y, radius, render_group, collision_group)        
         #stats
         self.health = Stat(health, health)
@@ -61,13 +61,11 @@ class Unit(DynamicObject):
         #random name label
         self.name = generate()
         self.label_offset = -50
-        self.label = pyglet.text.Label(self.name, x=self.x, y=self.y+self.label_offset, batch=batch, group = hud, anchor_x="center")
+        self.label = pyglet.text.Label(self.name, x=self.x, y=self.y+self.label_offset, batch=batch, group = render_groups["hud"], anchor_x="center")
 
         #walksound test
         self.walkcycle = 0
-
-        self.collision_group.append(self)
-        self.check_collision()
+        #self.check_collision()
         self.push(0, 50)
 
     def sprint_on(self):
@@ -142,15 +140,17 @@ class Unit(DynamicObject):
             play_sound(Resources.Audio.Unit.Step.stone, self.x, self.y, 0.15, 300, 1000)
             self.walkcycle = 0
 
-    def on_collision(self, obj):
-        super(Unit, self).on_collision(obj)
-        if isinstance(obj, Unit):
-            self.seperate(obj)
-            self.add_force(obj)
+
+    def send_collision(self, reciever):
+        super(Unit, self).send_collision(reciever)
+        if isinstance(reciever, Unit):
+            self.seperate(reciever)
+            self.add_force(reciever)
             self.reduce_velocity()
-        elif isinstance(obj, Obstacle):
+        elif isinstance(reciever, Obstacle):
+            self.seperate(reciever)
             self.reduce_velocity()
-            self.seperate(obj)
+            
     
     def controll(self, dt):
         pass

@@ -109,9 +109,9 @@ class Player(Unit):
         #player specific stuff
         self.crosshair = None
         self.guide = None
-        self.ammo_text = pyglet.text.Label(text = str(self.gun.bullets_left) + "/" + str(self.gun.ammo_pool), x = self.x, y = self.y, batch = batch, group = hud, anchor_x='center')
+        self.ammo_text = pyglet.text.Label(text = str(self.gun.bullets_left) + "/" + str(self.gun.ammo_pool), x = self.x, y = self.y, batch = batch, group = render_groups["hud"], anchor_x='center')
         self.score = 0
-        self.score_text = pyglet.text.Label(text = "Kills: " + str(self.score), x = 5, y = 5, batch = batch, group = hud)
+        self.score_text = pyglet.text.Label(text = "Kills: " + str(self.score), x = 5, y = 5, batch = batch, group = render_groups["hud"])
         self.reload_bar = None
         self.reloading_time = 0
         
@@ -163,7 +163,7 @@ class Player(Unit):
         p = self.health.current_percentage()
         red = 255-p
         green = p
-        self.crosshair = batch.add(count, GL_QUAD_STRIP, hud, ('v2f', vertices), ('c4B', (red, green, 0, 255)*count))
+        self.crosshair = batch.add(count, GL_QUAD_STRIP, render_groups["hud"], ('v2f', vertices), ('c4B', (red, green, 0, 255)*count))
 
 ##    #squares fuck horrible
 ##    def update_crosshair(self):
@@ -263,7 +263,7 @@ class Player(Unit):
         if self.reload_bar != None:
             self.reload_bar.delete()
             
-        self.reload_bar = batch.add(count, GL_TRIANGLE_FAN, hud, ('v2f', vertices), ('c4B', (255,255,255,80)*count))
+        self.reload_bar = batch.add(count, GL_TRIANGLE_FAN, render_groups["hud"], ('v2f', vertices), ('c4B', (255,255,255,80)*count))
 
         if self.reloading_time > reload_time:
             self.reloading_time = 0

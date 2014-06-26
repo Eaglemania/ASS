@@ -46,8 +46,8 @@ class Mine(CollisionObject):
                  damage = 100,
                  effect_radius = 150,
                  push_force = 1500,
-                 render_group = middleground,
-                 collision_group = collision_objects):
+                 render_group = render_groups["foreground"],
+                 collision_group = collision_groups["powerup"]):
         
         super(Mine, self).__init__(image, x, y, trigger_radius, render_group, collision_group)
 
@@ -63,7 +63,6 @@ class Mine(CollisionObject):
         self.rotation = randint(0, 359)
         self.triggered = False
 
-        self.collision_group.append(self)
         self.check_collision()
 
     def on_kill(self, victim):
@@ -109,14 +108,13 @@ class Medkit(CollisionObject):
                  pick_up_radius = 8,
                  pick_up_sound = Resources.Audio.Drops.medkit,
                  heal_amount = 200,
-                 render_group = foreground,
-                 collision_group = collision_objects):
+                 render_group = render_groups["foreground"],
+                 collision_group = collision_groups["powerup"]):
         
         super(Medkit, self).__init__(image, x, y, pick_up_radius, render_group, collision_group)
         
         self.pick_up_sound = pick_up_sound
-        self.heal_amount = heal_amount
-        self.collision_group.append(self) 
+        self.heal_amount = heal_amount 
         self.rotation = randint(0, 359)
         
         
@@ -142,13 +140,12 @@ class Ammunition(CollisionObject):
                  y = 0,
                  pick_up_radius = 8,
                  pick_up_sound = Resources.Audio.Drops.ammunition,
-                 render_group = foreground,
-                 collision_group = collision_objects):
+                 render_group = render_groups["foreground"],
+                 collision_group = collision_groups["powerup"]):
         
         super(Ammunition, self).__init__(image, x, y, pick_up_radius, render_group, collision_group)
         
         self.pick_up_sound = pick_up_sound
-        self.collision_group.append(self) 
         self.rotation = randint(0, 359)
         
     def on_collision(self, obj):
@@ -179,8 +176,8 @@ class SpeedBoost(CollisionObject):
                  amount = 100,
                  duration = 10,
                  end_sound = Resources.Audio.Drops.medkit,
-                 render_group = foreground,
-                 collision_group = collision_objects):
+                 render_group = render_groups["foreground"],
+                 collision_group = collision_groups["powerup"]):
         
         super(SpeedBoost, self).__init__(image, x, y, pick_up_radius, render_group, collision_group)
         
@@ -188,7 +185,6 @@ class SpeedBoost(CollisionObject):
         self.amount = amount
         self.duration = duration
         self.end_sound = end_sound
-        self.collision_group.append(self) 
         self.rotation = randint(0, 359)
 
     def boost(self, obj):
