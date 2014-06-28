@@ -6,29 +6,34 @@ class Base(object):
         self.y = y
         self.group = group
         self.group.append(self)
-        ##may not even need the group here, just append it outside... i dunno
-        
+
     def collision(self, other):
         if self.colliding_with(other):
             print "%s colliding with %s" % (self, other)
-            self.send_collision(other)
-            other.recieve_collision(self)
+            self.on_collision(other)
 
     def colliding_with(self, other):
-        #overwrite for a subclass, with the subclass specific collision method call on other
+        return other.type_collision(self)
+    
+    def type_collision(self, other):
+        #this will have been called from OTHER,
+        #OTHER doesn't know what type of collision he has to do yet
+        #so i will tell him here, by CALLING the specific collision i want HIM to do
+
+        #also: only called, if there is a mask in self.group
         pass
     
-    def send_collision(self, other):
-        #called by the collision check from self
-        #in which case other must be from on of the groups in self.group.mask
-        #or, depending on the type of group used, self.group.container
+    def on_collision(self, other):
+        other.type_response(self)
+
+    def type_response(self, other):
+        #this will have been called from OTHER,
+        #OTHER doesn't know what i am yet, so i will tell him here
+        #by CALLING the specific response i want HIM to do
+
+        #also: only called, if a group from a collision checking object has self.group in it's mask
         pass
     
-    def recieve_collision(self, other):
-        #called by the collision check from other
-        #in which case other must have self in one of the groups in other.group.mask
-        #or, again depending on the group, other.group.container
-        pass
 
     def __repr__(self):
         return "%s, %s, %s" % (self.__class__.__name__, self.x, self.y)
@@ -38,12 +43,8 @@ class Radial(Base):
     def __init__(self, x, y, radius, group):
         super(Radial, self).__init__(x, y, group)
         self.radius = radius
-        
-    def colliding_with(self, other):
-        #no type check, because other has to implement radial_collision
-        #so if other is a box, the implemented radial_collision should be box vs radial
-        #if other is a kitchen sink, the implemented radial_collision should be kitchen sink vs radial
-        #etc
+
+    def type_collision(self, other):
         return other.radial_collision(self)
 
     def radial_collision(self, other):
@@ -61,7 +62,7 @@ class Box(Base):
         self.width = width
         self.height = height
 
-    def colliding_with(self, other):
+    def type_collision(self, other):
         #other has to implement box_collision
         return other.box_collision(self)
 
@@ -78,79 +79,60 @@ class Box(Base):
 
 ##TEST STUFF
 
-class Bullet(Radial):
-    collision_groups["bullet"] = ["unit","obstacle"]
-    
-    def __init__(self, x, y, radius, group=collision_groups["bullet"]):
-        super(Bullet, self).__init__(x, y, radius, group)
-        
-    def send_collision(self, other):
-        #a collision with one of the self.group.mask_objects happened (currently either a unit or an obstacle)
-        #so remove the bullet, or maybe pass through a few objects for a special bullet or whatnot
-        #also call bullet_collision on other, so other has to implement_bullet collision,
-        #but it'll know without a type check, that a bullet hit it
-        #so if other is a rock, it might play a clunk sound or add a small bullethole decal
-        #oh the possibilitities
-        other.bullet_collision(self)
-
 class Unit(Radial):
-    collision_groups["unit"] = ["unit", "obstacle", "powerup"]
+    collision_groups["unit"] = ["unit"]
     
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         super(Unit, self).__init__(x, y, radius, group)
 
-    def send_collision(self, other):
-        #again... other, which is one of the objects possible set by the collision group,
-        #so in this case either a unit, because CollisionGroupMe checks the container, obstacle or powerup,
-        #have to implement a unit_collision
-        other.unit_collision(self)
+    def type_response(self, other):
+        other.unit_response(self)
 
-    def unit_collision(self, unit):
-        #seperate the 2 units
-        pass
-        print "%s was ...touched by %s" % (self, unit)
-    
-    def bullet_collision(self, bullet):
-        #play a hurt sound, remove health etc
-        pass
-        print "%s was hit by %s" % (self, bullet)
+    def unit_response(self, unit):
+        print "nooo i got touched by another unit"
 
+class Obstacle():
+    collision_groups["obstacle"] = ["unit"] 
 
-##why no init? reasons!
-##still have to explain for what a collision group without a mask is...
-class Obstacle(object):
-    collision_groups["obstacle"] = []
-    
-    def unit_collision(self, unit):
-        #seperate the unit
-        pass
-        print "%s was ...touched by %s" % (self, unit)
-        
-    def bullet_collision(self, bullet):
-        #sound, maybe add a decal to the obstacle...
-        pass
-        print "%s was hit by %s" % (self, bullet)
+    def type_response(self, other):
+        other.obstacle_response(self)
+
+    def unit_response(self, unit):
+        print "just standing here, majestic as fuck, but what do i get, some douche walked into me!" 
 
 
-class Pillar(Radial, Obstacle):
+class Pillar(Obstacle, Radial):
     def __init__(self, x, y, radius, group=collision_groups["obstacle"]):
         super(Pillar, self).__init__(x, y, radius, group)
         
-class Wall(Box, Obstacle):
+class Wall(Obstacle, Box):
     def __init__(self, x, y, width, height, group=collision_groups["obstacle"]):
         super(Wall, self).__init__(x, y, width, height, group)
 
 
+class Bullet(Radial):
+    collision_groups["bullet"] = ["unit", "obstacle"]
+    
+    def __init__(self, x, y, radius, group=collision_groups["bullet"]):
+        super(Bullet, self).__init__(x, y, radius, group)
+
+    def unit_response(self, unit):
+        print "bullet hit a unit"
+
+    def obstacle_response(self, obstacle):
+        print "sad bullet is sad... got stuck inside an obstacle :("
+
 class Powerup(Radial):
-    collision_groups["powerup"] = []
+    collision_groups["powerup"] = ["unit"]
     
     def __init__(self, x, y, radius, group=collision_groups["powerup"]):
         super(Powerup, self).__init__(x, y, radius, group)
 
-    def unit_collision(self, unit):
-        pass
+    def unit_response(self, unit):
         print "%s got picked up by %s" % (self, unit)
-    
+
+
+
 def test():
     Unit(100,100,25)
     Unit(125,125,25)
@@ -164,8 +146,43 @@ def test():
 from shared import*
 from resources import*
 import pyglet
+
+if __name__ == "__main__":
+    from game import*
+    game = Game()
+
+    test()
+    game.update(1)
+    game.run()
+
+
+
+"""
+#a unit might need more than one collision object... a multipart enemy creature thing
+#for example...same for the sprite...
+class CollisionObject(object):
+    def __init__(self, position, collision_type, collision_group):
+
+class PlayerCollision(object):#this would be a collision type and group
+    collision_group["player"] = ["unit", "obstacle", "powerup"]
+    def send_collision(self, other):
+        #what i should call on their side, when i hit something
+        other.on_player_collision(self)
+        
+    def on_unit_collision(self, unit):
+        #what i should do, when i got hit
+        
+        pass
+#massive brainfart    
+class Player(object):
+    def __init__(self):
+        self.collision_object =         
+
 class Anchor(object):
-    def __init__(self, parent, followers):
+    def __init__(self, parent=False, followers=[]):
+        if parent:
+            print "yO"
+            parent.followers.append(self)
         self.parent = parent
         self.followers = followers
         
@@ -175,11 +192,10 @@ class Anchor(object):
 
     @x.setter
     def x(self, val):
-        self.parent.x = val
         for follower in self.followers:
             follower.x = val
         
-class UnitTest(object):
+class Player(object):
     def __init__(self,
                  x,
                  y,
@@ -187,24 +203,11 @@ class UnitTest(object):
                  image=Resources.Image.player,
                  layer=render_groups["foreground"]):
         self.collision = Unit(x, y, radius)
-        self.sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = layer)
-        self.anchor = Anchor(self.collision, [self.sprite])
+        self.player_sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = layer)
+        self.player_anchor = Anchor(False, [self.player_sprite])
+        self.gun_sprite = pyglet.sprite.Sprite(image, x, y, batch = batch, group = layer)
+        self.gun_anchor = Anchor(self.player_anchor, [self.gun_sprite])
     
-if __name__ == "__main__":
-    from game import*
-    game = Game()
-
-    test()
-    u = UnitTest(500, 111)
-    game.update(1)
-    print "more tests"
-    u.anchor.x = 111
-    game.update(1)
-    game.run()
-
-
-
-"""
 class Sprite(pyglet.sprite.Sprite):
     def __init__(self, image, render_group):
         super(Sprite, self).__init__(image, 0, 0, batch = batch, group = render_group)
