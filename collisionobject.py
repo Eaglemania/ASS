@@ -18,7 +18,7 @@ class Base(object):
     def type_collision(self, other):
         #this will have been called from OTHER,
         #OTHER doesn't know what type of collision he has to do yet
-        #so i will tell him here, by CALLING the specific collision i want HIM to do
+        #so i will tell him here, by RETURNING the specific collision i want HIM to do
 
         #also: only called, if there is a mask in self.group
         pass
@@ -53,7 +53,8 @@ class Radial(Base):
     
     def box_collision(self, other):
         #self=radial, other=box
-        return False
+        return (abs(other.x - self.x) * 2 < (other.width + self.radius) and
+                abs(other.y - self.y) * 2 < (other.height + self.radius))
 
     
 class Box(Base):
@@ -68,7 +69,8 @@ class Box(Base):
 
     def radial_collision(self, other):
         #self=box, other=radial
-        return False
+        return (abs(other.x - self.x) * 2 < (other.radius + self.width) and
+                abs(other.y - self.y) * 2 < (other.radius + self.height))
     
     def box_collision(self, other):
         #self=box, other=box
@@ -76,11 +78,9 @@ class Box(Base):
                  abs(other.y - self.y) * 2 < (other.height + self.height))
 
 
-
-##TEST STUFF
-
 class Unit(Radial):
     collision_groups["unit"] = ["unit"]
+    
     
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         super(Unit, self).__init__(x, y, radius, group)
@@ -110,8 +110,20 @@ class Wall(Obstacle, Box):
         super(Wall, self).__init__(x, y, width, height, group)
 
 
+#EXPLANATION
+#collision_groups["bullet"] = ["unit", "obstacle"]
+#"bullet" is the name of the group, ["unit", "obstacle"] is the mask of the group
+#the mask is a list of names of other groups, and/or the group itself
+#in this case, objects appended to the bullet group will check for collisions against objects in the unit and obstacle groups
+#o respond to the specific case, once a bullet hit something, so either bullet hit a unit, or bullet hit an obstacle,
+#the bullet will call other.type_response(bullet)
+#let's say other is a unit, so the units implemented type_response, will call bullet.unit_response(other)
+#or other is an obstacle, so the obstacles type_response will call bullet.obstacle_response(other)
+#so now the bullet can implement whatever it wants to do in either case with its unit_response/obstacle_response method
+
 class Bullet(Radial):
     collision_groups["bullet"] = ["unit", "obstacle"]
+    #groups mentioned in a mask must have a type_response
     
     def __init__(self, x, y, radius, group=collision_groups["bullet"]):
         super(Bullet, self).__init__(x, y, radius, group)
@@ -121,6 +133,7 @@ class Bullet(Radial):
 
     def obstacle_response(self, obstacle):
         print "sad bullet is sad... got stuck inside an obstacle :("
+
 
 class Powerup(Radial):
     collision_groups["powerup"] = ["unit"]
