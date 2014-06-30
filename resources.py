@@ -1,9 +1,5 @@
 from utils import*
-
-pyglet.options['audio'] = ('openal', 'silent')
-
 class Resources:
-    
     class Audio:
         loop = load_audio("resources/audio/loop.wav")
         
@@ -34,7 +30,7 @@ class Resources:
                 clip_out = load_audio("resources/audio/gun/sniper/clip_out.wav")
                 empty = load_audio("resources/audio/gun/sniper/empty.wav")
                 shoot = load_audio("resources/audio/gun/sniper/shoot.wav")
-    
+
         class Impact:
             flesh_1 = load_audio("resources/audio/impact/flesh_1.wav")
             flesh_2 = load_audio("resources/audio/impact/flesh_2.wav")
@@ -60,7 +56,7 @@ class Resources:
                 stone_2 = load_audio("resources/audio/unit/step/stone_2.wav")
                 stone_3 = load_audio("resources/audio/unit/step/stone_3.wav")
                 stone = [stone_1, stone_2, stone_3]
-   
+
     class Image:
         background = load_image("resources/image/background.png", False)
         bullet = load_image("resources/image/bullet.png")
@@ -95,3 +91,4 @@ class Resources:
             small = load_image("resources/image/obstacle/small.png")
             medium = load_image("resources/image/obstacle/medium.png")
             large = load_image("resources/image/obstacle/large.png")
+

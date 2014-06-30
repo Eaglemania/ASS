@@ -10,7 +10,7 @@ class AnchoredSprite(pyglet.sprite.Sprite):
     offset_x 20 would be anchored on the left side of the window, 20 pixels right
     offset_y -20 would be anchored on the top side of the window, 20 pixels down
     """
-    def __init__(self, image, offset_x, offset_y, render_group = hud):
+    def __init__(self, image, offset_x, offset_y, render_group = render_groups["hud"]):
         super(AnchoredSprite, self).__init__(image, 0, 0, batch=batch, group = render_group)
         self.offset_x = offset_x
         self.offset_y = offset_y
@@ -46,7 +46,7 @@ class Bar(pyglet.sprite.Sprite):
                  image_border = Resources.Image.Hud.border,
                  x = 0,
                  y = 0,
-                 render_group = hud):
+                 render_group = render_groups["hud"]):
         
         super(Bar, self).__init__(image_bar, x, y, batch=batch, group = render_group)
 

@@ -8,10 +8,11 @@ from math import atan2, degrees, pi, sin, cos, sqrt
 from utils import*
 from resources import*
 from shared import *
-#import ^ for window, batch, render groups
- 
+
+
+
 window.set_mouse_cursor(pyglet.window.ImageMouseCursor(Resources.Image.Hud.cursor, 0,8))
-bg = tiled_sprite(Resources.Image.background, 4, 3, batch, background)
+bg = tiled_sprite(Resources.Image.background, 4, 3, batch, render_groups["background"])
 
 from collisionobject import*
 from decal import*
@@ -23,30 +24,11 @@ from animatedsprite import*
 from hudelement import*
 from drops import*
 from obstacle import*
+from game import*
 
     
-def setup_listener():
-    listener = pyglet.media.get_audio_driver().get_listener()
-    listener.volume = 1
-    listener.up_orientation = (0, -1, 0)
-    listener.forward_orientation = (0, 0, 1)
-    listener.position = (window.width/2,window.height/2,0)
-    return listener
 
-listener = setup_listener()
-
-@window.event
-def on_resize(width, height):
-    listener.position = (width/2,height/2,0)
-
-def setup_music():
-    player = Resources.Audio.loop.play()
-    player.volume = 0.1
-    player.eos_action = "loop"
-    return player
-
-music_player = setup_music()
-
+game = Game()
 
 ###create some stuff for testing
 player = Player(x=300, y=300)
@@ -58,7 +40,7 @@ def create_enemy():
     wx = randint(0, window.width)
     wy = randint(0, window.height)
 
-    enemy = add_enemy()
+    enemy = random_enemy()
     enemy.waypoint_x = wx
     enemy.waypoint_y = wy
     enemy.target = player
@@ -159,7 +141,7 @@ def reposition_listener(dt):
 EVENT_TEXTS = []
 
 class EventText(pyglet.text.Label):
-    def __init__(self, text, x, y, time=0, font_size=16, anchor_x='center', group=hud, batch=batch):
+    def __init__(self, text, x, y, time=0, font_size=16, anchor_x='center', group=render_groups["hud"], batch=batch):
         super(EventText, self).__init__(text=text, x=x, y=y, font_size=font_size, anchor_x=anchor_x, group=group, batch=batch)
         self.time = time
 
@@ -226,13 +208,13 @@ class LevelGenerator(WaveGenerator): #lol sucks
         self.obstacles = []
         
         for n in range(int(large)):
-            self.obstacles.append(obstacle(Resources.Image.Obstacle.large, randint(0, window.width), randint(0, window.height), 64))
+            self.obstacles.append(obstacle(Image.Obstacle.large, randint(0, window.width), randint(0, window.height), 64))
 
         for n in range(int(medium)):
-            self.obstacles.append(obstacle(Resources.Image.Obstacle.medium, randint(0, window.width), randint(0, window.height), 32))
+            self.obstacles.append(obstacle(Image.Obstacle.medium, randint(0, window.width), randint(0, window.height), 32))
 
         for n in range(int(small)):
-            self.obstacles.append(obstacle(Resources.Image.Obstacle.small, randint(0, window.width), randint(0, window.height), 16))
+            self.obstacles.append(obstacle(Image.Obstacle.small, randint(0, window.width), randint(0, window.height), 16))
 
     def spawn_stop(self, dt):
         super(LevelGenerator, self).spawn_stop(dt)
@@ -256,5 +238,5 @@ class LevelGenerator(WaveGenerator): #lol sucks
 #pyglet.clock.schedule_interval_soft(reposition_listener, 1./60)
 #^ sounds very bad
     
-run_pyglet()
+game.run()
 

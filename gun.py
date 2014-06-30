@@ -96,7 +96,15 @@ rpg_gun_type = GunType(50, False, 1, 3, False, rpg_bullet_type, rpg_recoil, 0.05
 
 class Bullet(DynamicObject):
     
-    def __init__(self, bullet_type, owner, x, y, angle, render_group = foreground, collision_group = collision_objects, physic_ticks = 80):
+    def __init__(self,
+                 bullet_type,
+                 owner,
+                 x,
+                 y,
+                 angle,
+                 render_group = render_groups["foreground"],
+                 collision_group = collision_groups["bullet"],
+                 physic_ticks = 80):
 
         super(Bullet, self).__init__(bullet_type.image, x, y, bullet_type.radius, render_group, collision_group, physic_ticks )
 
@@ -109,8 +117,9 @@ class Bullet(DynamicObject):
         self.bullet_type = bullet_type
         self.push(-self.rotation, self.speed)
         
-        if not bullet_type.explosive:
-            self.check_collision()
+        #if not bullet_type.explosive:
+        #   self.check_collision()
+        
         #will cause strange crash for explosive bullets that kill the owner on this first check)
 
     def loop(self, dt):
@@ -134,7 +143,7 @@ class Bullet(DynamicObject):
     def on_kill(self, victim):
         self.owner.on_kill(victim)
     
-    def on_collision(self, obj):
+    def send_collision(self, obj):
         if isinstance(obj, unit.Unit):
             if randint(0, 100) < 50:
                 add_blood_decal(obj.x, obj.y)

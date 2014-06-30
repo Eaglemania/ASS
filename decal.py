@@ -8,7 +8,20 @@ from shared import*
 
 
 class FadingSprite(pyglet.sprite.Sprite):
-    def __init__(self, image, x, y, fade_in=1, full_for=1, fade_out=1, fps=60 ,full_opacity=255, scale=1, render_group=effects, blend_src = GL_SRC_ALPHA, blend_dest=GL_ONE_MINUS_SRC_ALPHA):
+    def __init__(self,
+                 image,
+                 x,
+                 y,
+                 fade_in=1,
+                 full_for=1,
+                 fade_out=1,
+                 fps=60 ,
+                 full_opacity=255,
+                 scale=1,
+                 render_group= render_groups["effects"],
+                 blend_src = GL_SRC_ALPHA,
+                 blend_dest=GL_ONE_MINUS_SRC_ALPHA):
+        
         super(FadingSprite, self).__init__(image, x, y, batch=batch, group=render_group, blend_src = blend_src, blend_dest = blend_dest)
         self.rotation = randint(0, 359)
         self.scale = uniform(0.8, 1.2)*scale
@@ -55,15 +68,15 @@ class FadingScalingSprite(FadingSprite):
             pyglet.clock.unschedule(self.fade_out)
 
 def add_flash(x, y, fade_in, fade_out, opacity = 255, scale = 1):
-    return FadingSprite(Resources.Image.light, x, y, fade_in, 0, fade_out, 20, opacity, scale, effects)
+    return FadingSprite(Resources.Image.light, x, y, fade_in, 0, fade_out, 20, opacity, scale)
 
 def add_gun_flash(x, y):
-    return FadingSprite(Resources.Image.light, x, y, 0.05, 0, 0.1, 20, 100, 1, effects)
+    return FadingSprite(Resources.Image.light, x, y, 0.05, 0, 0.1, 20, 100, 1)
 
 def add_mine_flash(x, y):
-    return FadingSprite(Resources.Image.light, x, y, 0.05, 0, 0.3, 20, 200, 2, effects)
+    return FadingSprite(Resources.Image.light, x, y, 0.05, 0, 0.3, 20, 200, 2)
 def add_mine_light(x, y):
-    return FadingSprite(Resources.Image.Drops.light, x, y, 0.1, 0.5, 0, 20, 200, 1, decals)
+    return FadingSprite(Resources.Image.Drops.light, x, y, 0.1, 0.5, 0, 20, 200, 1, render_groups["decals"])
 
 def add_terror(x = None, y = None):
     if x == None:
@@ -73,34 +86,34 @@ def add_terror(x = None, y = None):
     fade_in = uniform(0.1,1)
     fade_out = uniform(1,3)
     opacity = randint(30,200)
-    return FadingSprite(Resources.Image.terror, x, y, fade_in, 0, fade_out, 5, opacity, 1, hud)
+    return FadingSprite(Resources.Image.terror, x, y, fade_in, 0, fade_out, 5, opacity, 1, render_groups["hud"])
 
 def add_blood_decal(x, y):
-    return FadingSprite(choice(Resources.Image.Blood.large), x, y, 0, 30, 30, 3, 200, 1, decals)
+    return FadingSprite(choice(Resources.Image.Blood.large), x, y, 0, 30, 30, 3, 200, 1, render_groups["decals"])
 
 def add_burned_decal(x, y):
-    return FadingSprite(Resources.Image.burned, x, y, 0, 60, 30, 5, 240, 1, burned)
+    return FadingSprite(Resources.Image.burned, x, y, 0, 60, 30, 5, 240, 1, render_groups["burned"])
 
 def add_trail(x, y, angle):
-    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.1, 0, 3, 15, 200, 1, effects)
+    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.1, 0, 3, 15, 200, 1)
     trail.rotation = angle + randint(-10,10)
     trail.scale = uniform(0.9, 1.1)
     return trail
 
 def add_muzzle_smoke(x, y):
-    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.1, 0, 1.5, 7, 50, 1, effects)
+    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.1, 0, 1.5, 7, 50, 1)
     trail.scale = uniform(0.5, 1)
     return trail
 
 def add_impact_smoke(x, y):
-    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.05, 0, 1.5, 7, 70, 1, effects)
+    trail = FadingScalingSprite(choice(Resources.Image.trail), x, y, 0.05, 0, 1.5, 7, 70, 1)
     trail.scale = uniform(0.5, 1)
     return trail
 
 class Particle(FadingScalingSprite):
     #and also moving
 
-    def __init__(self, image, x, y, angle, velocity, friction, fade_in=1, full_for=1, fade_out=1, fps=60 ,full_opacity=255, scale=1, render_group=effects, blend_src = GL_SRC_ALPHA, blend_dest=GL_ONE_MINUS_SRC_ALPHA):
+    def __init__(self, image, x, y, angle, velocity, friction, fade_in, full_for, fade_out, fps ,full_opacity, scale, render_group, blend_src, blend_dest):
         super(Particle, self).__init__(image, x, y, fade_in, full_for, fade_out, fps, full_opacity, scale, render_group, blend_src, blend_dest)
         self.angle = angle
         self.velocity = velocity
