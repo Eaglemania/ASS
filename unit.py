@@ -59,7 +59,8 @@ class Unit(DynamicObject):
         self.health_bar = Bar(stat = self.health, x = x, y = y-(self.height/2))
 
         #random name label
-        self.name = generate()
+        gen = generate()
+        self.name = gen.generate_name(7)
         self.label_offset = -50
         self.label = pyglet.text.Label(self.name, x=self.x, y=self.y+self.label_offset, batch=batch, group = hud, anchor_x="center")
 
