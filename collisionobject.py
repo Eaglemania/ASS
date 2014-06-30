@@ -7,34 +7,16 @@ class Base(object):
         self.group = group
         self.group.append(self)
 
-    def collision(self, other):
-        if self.colliding_with(other):
-            print "%s colliding with %s" % (self, other)
-            self.on_collision(other)
-
     def colliding_with(self, other):
-        return other.type_collision(self)
+        if other.type_collision(self):
+             other.type_response(self)
     
     def type_collision(self, other):
-        #this will have been called from OTHER,
-        #OTHER doesn't know what type of collision he has to do yet
-        #so i will tell him here, by RETURNING the specific collision i want HIM to do
-
-        #also: only called, if there is a mask in self.group
         pass
-    
-    def on_collision(self, other):
-        other.type_response(self)
 
     def type_response(self, other):
-        #this will have been called from OTHER,
-        #OTHER doesn't know what i am yet, so i will tell him here
-        #by CALLING the specific response i want HIM to do
-
-        #also: only called, if a group from a collision checking object has self.group in it's mask
         pass
     
-
     def __repr__(self):
         return "%s, %s, %s" % (self.__class__.__name__, self.x, self.y)
 

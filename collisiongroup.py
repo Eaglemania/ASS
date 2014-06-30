@@ -16,7 +16,7 @@ class CollisionGroup(list):
         #check collisions for every object against self.mask_objects()
         for obj in self:
             for other in self.mask_objects():
-                obj.collision(other)
+                obj.colliding_with(other)
                 
     def optimize(self, collision_groups):
         #maybe stupid but i just went with it.
@@ -37,10 +37,10 @@ class CollisionGroupMe(CollisionGroup):
         #check collisions for every object against itself and self.mask_objects()
         for obj in xrange(len(self)):
             for other in xrange(obj+1, len(self)):
-                self[obj].collision(self[other])
+                self[obj].colliding_with(self[other])
 
             for other in self.mask_objects():
-                self[obj].collision(other)
+                self[obj].colliding_with(other)
 
 class CollisionGroups(dict):
     #subclassed dict, so that a collision group is made simply by setting it in the dict
