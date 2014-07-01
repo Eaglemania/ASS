@@ -1,78 +1,241 @@
-from collisiongroup import *
+from collisiongroup import collision_groups
+from shared import*
+from resources import*
+import pyglet
 
-class Base(object):
-    def __init__(self, x, y, group):
-        self.x = x
-        self.y = y
+
+class Position(object):
+    def __init__(self, x, y):
+        self._x = x
+        self._y = y
+        self.children = []
+
+    def set_x(self, x):
+        self._x = x
+        for child in self.children:
+            child.x = x
+
+    x = property(lambda self: self._x, set_x)
+
+    def set_y(self, y):
+        self._y = y
+        for child in self.children:
+            child.y = y
+
+    y = property(lambda self: self._y, set_y)
+    
+class Collision(object):
+    def __init__(self, position, group):
+        self.position = position
         self.group = group
         self.group.append(self)
 
     def colliding_with(self, other):
         if other.type_collision(self):
-             other.type_response(self)
+            other.type_response(self)
     
     def type_collision(self, other):
         pass
-
+    
     def type_response(self, other):
         pass
-    
-    def __repr__(self):
-        return "%s, %s, %s" % (self.__class__.__name__, self.x, self.y)
 
+    def seperate_from(self, other):
+        other.type_seperate(self)
 
-class Radial(Base):
-    def __init__(self, x, y, radius, group):
-        super(Radial, self).__init__(x, y, group)
+    def type_seperate(self, other):
+        pass
+
+class Radial(Collision):
+    def __init__(self, position, radius, group):
+        super(Radial, self).__init__(position, group)
         self.radius = radius
 
     def type_collision(self, other):
         return other.radial_collision(self)
-
+    
     def radial_collision(self, other):
         #self=radial, other=radial
-        return (self.x-other.x)**2 + (other.y-self.y)**2 < (other.radius+self.radius)**2
-    
+        return (self.position.x-other.position.x)**2 + (other.position.y-self.position.y)**2 < (other.radius+self.radius)**2
+
     def box_collision(self, other):
         #self=radial, other=box
-        return (abs(other.x - self.x) * 2 < (other.width + self.radius) and
-                abs(other.y - self.y) * 2 < (other.height + self.radius))
+        return (abs(other.position.x - self.position.x) * 2 < (other.width + self.radius) and
+                abs(other.position.y - self.position.y) * 2 < (other.height + self.radius))
 
-    
-class Box(Base):
-    def __init__(self, width, height, group):
-        super(Radial, self).__init__(x, y, group)
+    def type_seperate(self, other):
+        other.radial_seperate(self)
+            
+    def radial_seperate(self, other):
+        #self=radial, other=radial
+        dx = other.position.x - self.position.x
+        dy = other.position.y - self.position.y
+        rads = atan2(dy, dx)
+        dist = sqrt((dx**2)+(dy**2)) - self.radius-other.radius
+
+        self.position.x += cos(rads)*dist
+        self.position.y += sin(rads)*dist
+
+    def box_seperate(self, other):
+        #self=radial, other=box
+        dx = other.position.x - self.position.x
+        width = (self.radius+other.width)/2
+        if dx > 0:
+            #other is right of self
+            self.position.x = other.position.x-width
+        else:
+            self.position.x = other.position.x+width
+
+        dy = other.position.y - self.position.y
+        height = (self.radius+other.height)/2
+        if dy > 0:
+            #other is above self
+            self.position.y = other.position.y-height
+        else:
+            self.position.y = other.position.y+height
+        
+class Box(Collision):
+    def __init__(self, position, width, height, group):
+        super(Radial, self).__init__(position, group)
         self.width = width
         self.height = height
 
     def type_collision(self, other):
-        #other has to implement box_collision
         return other.box_collision(self)
 
     def radial_collision(self, other):
         #self=box, other=radial
-        return (abs(other.x - self.x) * 2 < (other.radius + self.width) and
-                abs(other.y - self.y) * 2 < (other.radius + self.height))
+        return (abs(other.position.x - self.position.x) * 2 < (other.radius + self.width) and
+                abs(other.position.y - self.position.y) * 2 < (other.radius + self.height))
     
     def box_collision(self, other):
         #self=box, other=box
-        return  (abs(other.x - self.x) * 2 < (other.width + self.width) and
-                 abs(other.y - self.y) * 2 < (other.height + self.height))
+        return  (abs(other.position.x - self.position.x) * 2 < (other.width + self.width) and
+                 abs(other.position.y - self.position.y) * 2 < (other.height + self.height))
 
+    def type_seperate(self, other):
+        other.box_seperate(self)
+            
+    def radial_seperate(self, other):
+        #self=box, other=radial
+        dx = other.position.x - self.position.x
+        width = (self.width+other.radius)/2
+        if dx > 0:
+            #other is right of self
+            self.position.x = other.position.x-width
+        else:
+            self.position.x = other.position.x+width
 
-class Unit(Radial):
-    collision_groups["unit"] = ["unit"]
-    
-    
-    def __init__(self, x, y, radius, group=collision_groups["unit"]):
-        super(Unit, self).__init__(x, y, radius, group)
+        dy = other.position.y - self.position.y
+        height = (self.height+other.radius)/2
+        if dy > 0:
+            #other is above self
+            self.position.y = other.position.y-height
+        else:
+            self.position.y = other.position.y+height
 
+    def box_seperate(self, other):
+        #self=box, other=box
+        dx = other.position.x - self.position.x
+        width = (self.width+other.width)/2
+        if dx > 0:
+            #other is right of self
+            self.position.x = other.position.x-width
+        else:
+            self.position.x = other.position.x+width
+
+        dy = other.position.y - self.position.y
+        height = (self.height+other.height)/2
+        if dy > 0:
+            #other is above self
+            self.position.y = other.position.y-height
+        else:
+            self.position.y = other.position.y+height
+
+class Velocity(object):
+    def __init__(self, x, y):
+        self.x = 0
+        self.y = 0
+
+def Sprite(position, image):
+    sprite = pyglet.sprite.Sprite(image, position.x, position.y, batch=batch, group=render_groups["foreground"])        
+    position.children.append(sprite)
+    return sprite
+
+class Movement(object):
+    def __init__(self, position, walk_speed):
+        self.position = position
+        self.walk_speed = walk_speed
+        self.current_speed = Velocity(0, 0)
+        
+        pyglet.clock.schedule_interval(self.update, 1./60)
+
+    def update(self, dt):
+        self.position.x += self.current_speed.x * dt
+        self.position.y += self.current_speed.y * dt
+        
+
+class UnitCollision(Radial):
     def type_response(self, other):
         other.unit_response(self)
 
     def unit_response(self, unit):
-        print "nooo i got touched by another unit"
 
+        self.seperate_from(unit)
+
+class Unit(Radial):
+    collision_groups["unit"] = ["unit"]
+    
+    def __init__(self, x, y, radius, group=collision_groups["unit"]):
+        self.position = Position(x, y)
+        self.collision = UnitCollision(self.position, radius, group)
+        self.sprite = Sprite(self.position, Resources.Image.player)
+        self.movement = Movement(self.position, 100)
+
+class PlayerController:
+    def __init__(self, movement):
+        self.movement = movement
+        window.push_handlers(self)
+        
+    def on_key_press(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.current_speed.y = self.movement.walk_speed
+        elif symbol == keys["down"]:
+            self.movement.current_speed.y = -self.movement.walk_speed
+        if symbol == keys["left"]:
+            self.movement.current_speed.x = -self.movement.walk_speed
+        elif symbol == keys["right"]:
+            self.movement.current_speed.x = self.movement.walk_speed
+        
+    def on_key_release(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.current_speed.y = 0
+        elif symbol == keys["down"]:
+            self.movement.current_speed.y = 0
+        if symbol == keys["left"]:
+            self.movement.current_speed.x = 0
+        elif symbol == keys["right"]:
+            self.movement.current_speed.x = 0
+
+class Player(Unit):
+    def __init__(self, x, y, radius, group=collision_groups["unit"]):
+        super(Player, self).__init__(x, y, radius, group)
+        self.controller = PlayerController(self.movement)
+
+if __name__ == "__main__":
+    from game import*
+    game = Game()
+
+    a = Unit(100,100,36)
+    b = Unit(125,525,36)
+    p = Player(300,300,36)
+    p1 = Player(400,400,36)
+    p2 = Player(600,600,36)
+
+    game.run()
+    
+
+"""
 class Obstacle():
     collision_groups["obstacle"] = ["unit"] 
 
@@ -127,32 +290,6 @@ class Powerup(Radial):
         print "%s got picked up by %s" % (self, unit)
 
 
-
-def test():
-    Unit(100,100,25)
-    Unit(125,125,25)
-    Bullet(100,100,5)
-    Bullet(100,100,5)
-    Pillar(100,100,25)
-    Pillar(125,125,25)
-    Powerup(100,100,10)
-    Powerup(125,125,10)
-
-from shared import*
-from resources import*
-import pyglet
-
-if __name__ == "__main__":
-    from game import*
-    game = Game()
-
-    test()
-    game.update(1)
-    game.run()
-
-
-
-"""
 #a unit might need more than one collision object... a multipart enemy creature thing
 #for example...same for the sprite...
 class CollisionObject(object):
