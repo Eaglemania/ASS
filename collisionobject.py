@@ -1,8 +1,8 @@
 from collisiongroup import collision_groups
 from shared import*
 from resources import*
+from random import*
 import pyglet
-
 
 class Position(object):
     def __init__(self, x, y):
@@ -23,6 +23,7 @@ class Position(object):
             child.y = y
 
     y = property(lambda self: self._y, set_y)
+
     
 class Collision(object):
     def __init__(self, position, group):
@@ -46,6 +47,54 @@ class Collision(object):
     def type_seperate(self, other):
         pass
 
+
+def radials(a, b):
+    dx = b.position.x - a.position.x
+    dy = b.position.y - a.position.y
+    rads = atan2(dy, dx)
+    dist = sqrt((dx**2)+(dy**2)) - a.radius-b.radius
+
+    a.position.x += cos(rads)*dist
+    a.position.y += sin(rads)*dist
+
+    
+def boxes(a, b):
+    dx = b.position.x - a.position.x
+    dy = b.position.y - a.position.y
+
+    if abs(dx) > abs(dy):
+        width = (a.width+b.width)/2
+        if dx > 0:
+            a.position.x = b.position.x-width
+        else:
+            a.position.x = b.position.x+width
+    else:
+        height = (a.height+b.height)/2
+        if dy > 0:
+            a.position.y = b.position.y-height
+        else:
+            a.position.y = b.position.y+height
+
+
+def both(radial, box):
+    #yea... not really...
+    dy = box.position.y - radial.position.y
+    dx = box.position.x - radial.position.x
+
+    if abs(dx) > abs(dy):
+        width = (radial.radius+box.width)/2
+        if dx > 0:
+            radial.position.x = box.position.x-width
+        else:
+            radial.position.x = box.position.x+width
+    else:
+        height = (radial.radius+box.height)/2
+        if dy > 0:
+            radial.position.y = box.position.y-height
+        else:
+            radial.position.y = box.position.y+height
+
+
 class Radial(Collision):
     def __init__(self, position, radius, group):
         super(Radial, self).__init__(position, group)
@@ -68,35 +117,16 @@ class Radial(Collision):
             
     def radial_seperate(self, other):
         #self=radial, other=radial
-        dx = other.position.x - self.position.x
-        dy = other.position.y - self.position.y
-        rads = atan2(dy, dx)
-        dist = sqrt((dx**2)+(dy**2)) - self.radius-other.radius
-
-        self.position.x += cos(rads)*dist
-        self.position.y += sin(rads)*dist
+        radials(self, other)
 
     def box_seperate(self, other):
         #self=radial, other=box
-        dx = other.position.x - self.position.x
-        width = (self.radius+other.width)/2
-        if dx > 0:
-            #other is right of self
-            self.position.x = other.position.x-width
-        else:
-            self.position.x = other.position.x+width
+        both(self, other)
 
-        dy = other.position.y - self.position.y
-        height = (self.radius+other.height)/2
-        if dy > 0:
-            #other is above self
-            self.position.y = other.position.y-height
-        else:
-            self.position.y = other.position.y+height
-        
+            
 class Box(Collision):
     def __init__(self, position, width, height, group):
-        super(Radial, self).__init__(position, group)
+        super(Box, self).__init__(position, group)
         self.width = width
         self.height = height
 
@@ -118,49 +148,24 @@ class Box(Collision):
             
     def radial_seperate(self, other):
         #self=box, other=radial
-        dx = other.position.x - self.position.x
-        width = (self.width+other.radius)/2
-        if dx > 0:
-            #other is right of self
-            self.position.x = other.position.x-width
-        else:
-            self.position.x = other.position.x+width
-
-        dy = other.position.y - self.position.y
-        height = (self.height+other.radius)/2
-        if dy > 0:
-            #other is above self
-            self.position.y = other.position.y-height
-        else:
-            self.position.y = other.position.y+height
+        both(other, self)
 
     def box_seperate(self, other):
         #self=box, other=box
-        dx = other.position.x - self.position.x
-        width = (self.width+other.width)/2
-        if dx > 0:
-            #other is right of self
-            self.position.x = other.position.x-width
-        else:
-            self.position.x = other.position.x+width
+        boxes(self, other)
 
-        dy = other.position.y - self.position.y
-        height = (self.height+other.height)/2
-        if dy > 0:
-            #other is above self
-            self.position.y = other.position.y-height
-        else:
-            self.position.y = other.position.y+height
 
 class Velocity(object):
     def __init__(self, x, y):
         self.x = 0
         self.y = 0
 
+
 def Sprite(position, image):
     sprite = pyglet.sprite.Sprite(image, position.x, position.y, batch=batch, group=render_groups["foreground"])        
     position.children.append(sprite)
     return sprite
+
 
 class Movement(object):
     def __init__(self, position, walk_speed):
@@ -168,7 +173,7 @@ class Movement(object):
         self.walk_speed = walk_speed
         self.current_speed = Velocity(0, 0)
         
-        pyglet.clock.schedule_interval(self.update, 1./60)
+        pyglet.clock.schedule(self.update)
 
     def update(self, dt):
         self.position.x += self.current_speed.x * dt
@@ -180,10 +185,10 @@ class UnitCollision(Radial):
         other.unit_response(self)
 
     def unit_response(self, unit):
-
         self.seperate_from(unit)
 
-class Unit(Radial):
+
+class Unit(object):
     collision_groups["unit"] = ["unit"]
     
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
@@ -191,6 +196,7 @@ class Unit(Radial):
         self.collision = UnitCollision(self.position, radius, group)
         self.sprite = Sprite(self.position, Resources.Image.player)
         self.movement = Movement(self.position, 100)
+
 
 class PlayerController:
     def __init__(self, movement):
@@ -217,20 +223,63 @@ class PlayerController:
         elif symbol == keys["right"]:
             self.movement.current_speed.x = 0
 
+
 class Player(Unit):
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         super(Player, self).__init__(x, y, radius, group)
         self.controller = PlayerController(self.movement)
 
+class CrateCollision(Box):
+    #what if i wanted to seperate everything regardless of type
+    #lol i've been workin on this system for like 2 weeks
+    #anyway, because unit is in the mask, (ALSO: collision_group should be set here?)
+    #the unit will call unit_response on the crate, which means the crate must implement it...
+    #that's bad.......
+    #more things that are wrong: what if i want to switch out the responses
+    #they are tied with the shape, box/radial
+    #have the responses be a class without init?
+    
+    def unit_response(self, unit):
+        unit.seperate_from(self)
+
+class PlayerCrateCollision(Box):
+    #this shoudn't be another class, it should use players group, and crates collision, whos responses tho?
+    def type_response(self, other):
+        other.unit_response(self)
+
+    def unit_response(self, unit):
+        unit.seperate_from(self)
+        
+class Crate(object):
+    collision_groups["obstacle"] = ["unit"]
+    
+    def __init__(self, x, y, width, height, group=collision_groups["obstacle"]):
+        self.position = Position(x, y)
+        self.collision = CrateCollision(self.position, width, height, group)
+        self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
+
+class PlayerCrate(Crate):
+    def __init__(self, x, y, width, height, group=collision_groups["unit"]):
+        #why is group unit and not obstacle, well, it's not an obstacle, but it moves for the player... so it's a unit kinda sorta?
+        self.position = Position(x, y)
+        self.collision = PlayerCrateCollision(self.position, width, height, group)
+        self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
+        self.movement = Movement(self.position, 100)
+        self.controller = PlayerController(self.movement)
+        
 if __name__ == "__main__":
     from game import*
     game = Game()
 
-    a = Unit(100,100,36)
-    b = Unit(125,525,36)
-    p = Player(300,300,36)
-    p1 = Player(400,400,36)
-    p2 = Player(600,600,36)
+    stuffs = []
+    for i in range(40):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
+    p = Player(300,300,24)
+    p1 = Player(400,400,24)
+    p2 = Player(600,600,24)
+    pc = PlayerCrate(150,150,32,32)
 
     game.run()
     
