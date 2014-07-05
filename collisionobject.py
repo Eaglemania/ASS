@@ -26,14 +26,16 @@ class Position(object):
 
     
 class Collision(object):
-    def __init__(self, position, group):
+    def __init__(self, position, group, response):
         self.position = position
         self.group = group
+        self.response = response
+        self.response.collision = self
         self.group.append(self)
 
     def colliding_with(self, other):
         if other.type_collision(self):
-            other.type_response(self)
+            other.response.type_response(self)
     
     def type_collision(self, other):
         pass
@@ -96,8 +98,8 @@ def both(radial, box):
 
 
 class Radial(Collision):
-    def __init__(self, position, radius, group):
-        super(Radial, self).__init__(position, group)
+    def __init__(self, position, radius, group, response):
+        super(Radial, self).__init__(position, group, response)
         self.radius = radius
 
     def type_collision(self, other):
@@ -125,8 +127,8 @@ class Radial(Collision):
 
             
 class Box(Collision):
-    def __init__(self, position, width, height, group):
-        super(Box, self).__init__(position, group)
+    def __init__(self, position, width, height, group, response):
+        super(Box, self).__init__(position, group, response)
         self.width = width
         self.height = height
 
@@ -178,22 +180,21 @@ class Movement(object):
     def update(self, dt):
         self.position.x += self.current_speed.x * dt
         self.position.y += self.current_speed.y * dt
-        
 
-class UnitCollision(Radial):
+        
+class UnitResponse(object):
     def type_response(self, other):
-        other.unit_response(self)
+        other.response.unit_response(self)
 
     def unit_response(self, unit):
-        self.seperate_from(unit)
-
+        self.collision.seperate_from(unit.collision)
 
 class Unit(object):
     collision_groups["unit"] = ["unit"]
     
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         self.position = Position(x, y)
-        self.collision = UnitCollision(self.position, radius, group)
+        self.collision = Radial(self.position, radius, group, UnitResponse())
         self.sprite = Sprite(self.position, Resources.Image.player)
         self.movement = Movement(self.position, 100)
 
@@ -229,7 +230,7 @@ class Player(Unit):
         super(Player, self).__init__(x, y, radius, group)
         self.controller = PlayerController(self.movement)
 
-class CrateCollision(Box):
+class CrateResponse(object):
     #what if i wanted to seperate everything regardless of type
     #lol i've been workin on this system for like 2 weeks
     #anyway, because unit is in the mask, (ALSO: collision_group should be set here?)
@@ -240,29 +241,21 @@ class CrateCollision(Box):
     #have the responses be a class without init?
     
     def unit_response(self, unit):
-        unit.seperate_from(self)
-
-class PlayerCrateCollision(Box):
-    #this shoudn't be another class, it should use players group, and crates collision, whos responses tho?
-    def type_response(self, other):
-        other.unit_response(self)
-
-    def unit_response(self, unit):
-        unit.seperate_from(self)
+        unit.collision.seperate_from(self.collision)
+        
         
 class Crate(object):
     collision_groups["obstacle"] = ["unit"]
     
     def __init__(self, x, y, width, height, group=collision_groups["obstacle"]):
         self.position = Position(x, y)
-        self.collision = CrateCollision(self.position, width, height, group)
+        self.collision = Box(self.position, width, height, group, CrateResponse())
         self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
 
 class PlayerCrate(Crate):
     def __init__(self, x, y, width, height, group=collision_groups["unit"]):
-        #why is group unit and not obstacle, well, it's not an obstacle, but it moves for the player... so it's a unit kinda sorta?
         self.position = Position(x, y)
-        self.collision = PlayerCrateCollision(self.position, width, height, group)
+        self.collision = Box(self.position, width, height, group, UnitResponse())
         self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
         self.movement = Movement(self.position, 100)
         self.controller = PlayerController(self.movement)
