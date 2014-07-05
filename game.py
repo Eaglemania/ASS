@@ -87,7 +87,7 @@ class Game(object):
 
         collision_groups.optimize()
         
-        #pyglet.clock.schedule_interval(self.update, 1./60)
+        pyglet.clock.schedule(self.update)
    
     def update(self, dt):
         collision_groups.check()

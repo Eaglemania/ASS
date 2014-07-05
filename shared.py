@@ -30,3 +30,7 @@ render_groups["hud"] = OrderedGroup(7)
 keys = {}
 keys["draw_fps"] = F
 keys["spam_events"] = E
+keys["up"] = W
+keys["down"] = S
+keys["left"] = A
+keys["right"] = D
