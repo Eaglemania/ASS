@@ -24,13 +24,11 @@ class Position(object):
 
     y = property(lambda self: self._y, set_y)
 
-    
 class Collision(object):
     def __init__(self, position, group, response):
         self.position = position
         self.group = group
         self.response = response
-        self.response.collision = self
         self.group.append(self)
 
     def colliding_with(self, other):
@@ -42,6 +40,12 @@ class Collision(object):
     
     def type_response(self, other):
         pass
+    
+    def set_response(self, response):
+        self._response = response
+        response.collision = self
+        
+    response = property(lambda self: self._response, set_response)
 
     def seperate_from(self, other):
         other.type_seperate(self)
@@ -49,6 +53,12 @@ class Collision(object):
     def type_seperate(self, other):
         pass
 
+class Response(object):
+    def __init__(self):
+        self.collision = None
+        
+    def type_response(self, other):
+        pass
 
 def radials(a, b):
     dx = b.position.x - a.position.x
@@ -182,22 +192,24 @@ class Movement(object):
         self.position.y += self.current_speed.y * dt
 
         
-class UnitResponse(object):
+class UnitResponse(Response):
     def type_response(self, other):
-        other.response.unit_response(self)
+        #still sooooo ugly...
+        #other is a collision object
+        other.response.unit_response(self.collision)
 
     def unit_response(self, unit):
-        self.collision.seperate_from(unit.collision)
+        #unit is a collision object
+        self.collision.seperate_from(unit)
 
 class Unit(object):
     collision_groups["unit"] = ["unit"]
-    
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         self.position = Position(x, y)
         self.collision = Radial(self.position, radius, group, UnitResponse())
         self.sprite = Sprite(self.position, Resources.Image.player)
         self.movement = Movement(self.position, 100)
-
+        
 
 class PlayerController:
     def __init__(self, movement):
@@ -230,18 +242,21 @@ class Player(Unit):
         super(Player, self).__init__(x, y, radius, group)
         self.controller = PlayerController(self.movement)
 
-class CrateResponse(object):
+class CrateResponse(Response):
     #what if i wanted to seperate everything regardless of type
     #lol i've been workin on this system for like 2 weeks
-    #anyway, because unit is in the mask, (ALSO: collision_group should be set here?)
+    #anyway, because unit is in the mask,
     #the unit will call unit_response on the crate, which means the crate must implement it...
-    #that's bad.......
-    #more things that are wrong: what if i want to switch out the responses
-    #they are tied with the shape, box/radial
-    #have the responses be a class without init?
+
+    #collision_group could be set here, because depending on the group, the methods needed change
+    #which is prolly bad design
+    
+    #a group can be referenced in a mask, it could be checked for collisions, without the group knowing it will be
+    #when a group is referenced in a mask, it will be ckecked against.
+    #all objects checked against, need a type_response, which will call the specific response method on the checking object
     
     def unit_response(self, unit):
-        unit.collision.seperate_from(self.collision)
+        unit.seperate_from(self.collision)
         
         
 class Crate(object):
