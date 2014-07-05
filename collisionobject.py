@@ -236,12 +236,21 @@ class PlayerController:
         elif symbol == keys["right"]:
             self.movement.current_speed.x = 0
 
-
 class Player(Unit):
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         super(Player, self).__init__(x, y, radius, group)
         self.controller = PlayerController(self.movement)
 
+        #test example
+        pyglet.clock.schedule_once(self.test, 5)
+        pyglet.clock.schedule_once(self.testb, 15)
+        
+    def test(self, dt):
+        self.collision.response = Response()
+    
+    def testb(self, dt):
+        self.collision.response = UnitResponse()
+        
 class CrateResponse(Response):
     #what if i wanted to seperate everything regardless of type
     #lol i've been workin on this system for like 2 weeks
