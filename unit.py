@@ -5,10 +5,10 @@ collision_groups["unit"] = ["unit"]
 
 class UnitResponse(Response):
     def type_response(self, other):
-        #other is a collision object... needs to be a response object....
+        #other is a response object
         #self is a response object... needs to be a collision object...
         #great...
-        other.response.unit_response(self.collision)
+        other.unit_response(self.collision)
 
     def unit_response(self, unit):
         self.collision.seperate_from(unit)

@@ -26,9 +26,9 @@ class PlayerController:
         elif symbol == keys["right"]:
             self.movement.force.x = 0
             
-class TestResponse(Response):
+class TestResponse(UnitResponse):
     def unit_response(self, unit):
-        print self, unit, unit.collision
+        print self, unit
         
 class Player(Unit):
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
@@ -36,14 +36,16 @@ class Player(Unit):
         self.controller = PlayerController(self.movement)
 
         #tests
-        pyglet.clock.schedule_once(self.test, 15)
-        pyglet.clock.schedule_once(self.testb, 25)
+        pyglet.clock.schedule_once(self.test, 5)
+        pyglet.clock.schedule_once(self.testb, 15)
         
     def test(self, dt):
-        self.collision.response = TestResponse(self.collision)
+        self.response.test()
+        self.response = TestResponse(self.collision)
     
     def testb(self, dt):
-        self.collision.response = UnitResponse(self.collision)
+        self.response.test()
+        self.response = UnitResponse(self.collision)
 
 from obstacle import*
 

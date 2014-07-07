@@ -54,10 +54,14 @@ class Response(object):
         self.collision.response = self
 
     def on_collision(self, other):
-        self.type_response(other)
+        other.response.type_response(self)
     
     def type_response(self, other):
         pass
+
+    def test(self):
+        print "uhm"
+        self.collision.remove_handlers(self.on_collision)
 
 def radials(a, b):
     dx = b.position.x - a.position.x
