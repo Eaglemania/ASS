@@ -1,3 +1,82 @@
+from collisionobject import*
+from unit import*
+
+class PlayerController:
+    def __init__(self, movement):
+        self.movement = movement
+        window.push_handlers(self)
+        
+    def on_key_press(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.force.y = self.movement.walk_speed
+        elif symbol == keys["down"]:
+            self.movement.force.y = -self.movement.walk_speed
+        if symbol == keys["left"]:
+            self.movement.force.x = -self.movement.walk_speed
+        elif symbol == keys["right"]:
+            self.movement.force.x = self.movement.walk_speed
+        
+    def on_key_release(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.force.y = 0
+        elif symbol == keys["down"]:
+            self.movement.force.y = 0
+        if symbol == keys["left"]:
+            self.movement.force.x = 0
+        elif symbol == keys["right"]:
+            self.movement.force.x = 0
+            
+class TestResponse(Response):
+    def unit_response(self, unit):
+        print self, unit, unit.collision
+        
+class Player(Unit):
+    def __init__(self, x, y, radius, group=collision_groups["unit"]):
+        super(Player, self).__init__(x, y, radius, group)
+        pyglet.clock.unschedule(self.controller.change)
+        self.controller = PlayerController(self.movement)
+
+        #tests
+        pyglet.clock.schedule_once(self.test, 15)
+        pyglet.clock.schedule_once(self.testb, 25)
+        
+    def test(self, dt):
+        self.collision.response = TestResponse(self.collision)
+    
+    def testb(self, dt):
+        self.collision.response = UnitResponse(self.collision)
+
+from obstacle import*
+
+class PlayerCrate(Crate):
+    def __init__(self, x, y, width, height, group=collision_groups["unit"]):
+        self.position = Position(x, y)
+        self.collision = Box(self.position, width, height, group)
+        self.response = UnitResponse(self.collision)
+        self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
+        self.movement = Movement(self.position, self.collision, 10000)
+        self.controller = PlayerController(self.movement)
+
+        
+if __name__ == "__main__":
+    from game import*
+    from unit import*
+    from obstacle import*
+    game = Game()
+
+    stuffs = []
+    for i in range(40):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
+    p = Player(300,300,24)
+    p1 = Player(400,400,24)
+    p2 = Player(600,600,24)
+    pc = PlayerCrate(150,150,32,32)
+
+    game.run()
+    
+"""
 import pyglet
 from pyglet.gl import*
 from unit import Unit
@@ -301,3 +380,4 @@ class Player(Unit):
             pass
         
         super(Player, self).clean(dt)
+"""

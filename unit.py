@@ -1,3 +1,55 @@
+from collisionobject import *
+from random import*
+
+collision_groups["unit"] = ["unit"]
+class UnitController(object):
+    def __init__(self, movement):
+        self.movement = movement
+
+        pyglet.clock.schedule_interval(self.change, 5)
+
+    def change(self, dt):
+        speeds = [-self.movement.walk_speed, 0, self.movement.walk_speed]
+        self.movement.force.x = choice(speeds)
+        self.movement.force.y = choice(speeds)
+        
+class UnitResponse(Response):
+    def type_response(self, other):
+        self.unit_response(other)
+
+    def unit_response(self, unit):
+        #unit is a collision object
+        self.collision.seperate_from(unit)
+
+class Unit(object):
+    def __init__(self, x, y, radius, group=collision_groups["unit"]):
+        self.position = Position(x, y)
+        self.collision = Radial(self.position, radius, group)
+        self.response = UnitResponse(self.collision)
+        self.sprite = Sprite(self.position, Resources.Image.player)
+        self.movement = Movement(self.position, self.collision, 10000)
+        self.controller = UnitController(self.movement)
+
+if __name__ == "__main__":
+    from game import*
+    from obstacle import*
+    from player import*
+    game = Game()
+
+    stuffs = []
+    for i in range(40):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
+    p = Player(300,300,24)
+    p1 = Player(400,400,24)
+    p2 = Player(600,600,24)
+    pc = PlayerCrate(150,150,32,32)
+
+    game.run()
+
+    
+"""
 import pyglet
 from collisionobject import CollisionObject, DynamicObject
 from hudelement import Bar
@@ -21,10 +73,8 @@ class Stat(object):
 
 class Unit(DynamicObject):
     #baseclass for units, to controll the unit either by ai or by keyboard sublcass this
-    """
-    for collision to work the unit must be added to and ONLY to collision_objects,
-    there can not be any reference of the object outside of collision_objects or the unit won't get cleaned up properly
-    """
+    #for collision to work the unit must be added to and ONLY to collision_objects,
+    #there can not be any reference of the object outside of collision_objects or the unit won't get cleaned up properly
     def __init__(self, image, x, y, radius, health, max_speed, render_group = render_groups["middleground"], collision_group = collision_groups["unit"]): 
         super(Unit, self).__init__(image, x, y, radius, render_group, collision_group)        
         #stats
@@ -192,10 +242,9 @@ class Unit(DynamicObject):
         rads %= 2*pi
         self.rotation = degrees(rads)
 
-    """
-    prolly stupid but mb not ?
-    for setting the movement flags in a subclass
-    """
+    #prolly stupid but mb not ?
+    #for setting the movement flags in a subclass
+    
     def move_right(self, flag = True):
         if flag:
             self.right = True
@@ -281,3 +330,4 @@ class Unit(DynamicObject):
             pass
         self.health_bar.clean()
         super(Unit, self).clean(dt)
+"""

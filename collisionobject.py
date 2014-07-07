@@ -24,39 +24,37 @@ class Position(object):
 
     y = property(lambda self: self._y, set_y)
 
-class Collision(object):
-    def __init__(self, position, group, response):
+class Collision(list, pyglet.event.EventDispatcher):
+    def __init__(self, position, group):
+        list.__init__(self)
         self.position = position
         self.group = group
-        self.response = response
         self.group.append(self)
 
     def colliding_with(self, other):
         if other.type_collision(self):
-            other.response.type_response(self)
-    
+            other.append(self)
+            self.dispatch_event("on_collision", other)
+            
     def type_collision(self, other):
         pass
     
-    def type_response(self, other):
-        pass
-    
-    def set_response(self, response):
-        self._response = response
-        response.collision = self
-        
-    response = property(lambda self: self._response, set_response)
-
     def seperate_from(self, other):
         other.type_seperate(self)
 
     def type_seperate(self, other):
         pass
 
+Collision.register_event_type("on_collision")
+
 class Response(object):
-    def __init__(self):
-        self.collision = None
-        
+    def __init__(self, collision):
+        self.collision = collision
+        self.collision.push_handlers(self.on_collision)
+
+    def on_collision(self, other):
+        self.type_response(other)
+    
     def type_response(self, other):
         pass
 
@@ -108,8 +106,8 @@ def both(radial, box):
 
 
 class Radial(Collision):
-    def __init__(self, position, radius, group, response):
-        super(Radial, self).__init__(position, group, response)
+    def __init__(self, position, radius, group):
+        super(Radial, self).__init__(position, group)
         self.radius = radius
 
     def type_collision(self, other):
@@ -137,8 +135,8 @@ class Radial(Collision):
 
             
 class Box(Collision):
-    def __init__(self, position, width, height, group, response):
-        super(Box, self).__init__(position, group, response)
+    def __init__(self, position, width, height, group):
+        super(Box, self).__init__(position, group)
         self.width = width
         self.height = height
 
@@ -167,125 +165,57 @@ class Box(Collision):
         boxes(self, other)
 
 
-class Velocity(object):
-    def __init__(self, x, y):
-        self.x = 0
-        self.y = 0
-
 
 def Sprite(position, image):
     sprite = pyglet.sprite.Sprite(image, position.x, position.y, batch=batch, group=render_groups["foreground"])        
     position.children.append(sprite)
     return sprite
 
+class Velocity(object):
+    def __init__(self, x, y):
+        self.x = 0
+        self.y = 0
 
 class Movement(object):
-    def __init__(self, position, walk_speed):
+    def __init__(self, position, collision, walk_speed):
         self.position = position
+        self.collision = collision
+        self.collision.movement = self
         self.walk_speed = walk_speed
-        self.current_speed = Velocity(0, 0)
+        self._force = Velocity(0, 0)
+        self._mass = 100.0
         
         pyglet.clock.schedule(self.update)
 
+    def get_force(self):
+        return self._force
+
+    force = property(get_force, lambda self, value: self._force)
+
+    def get_mass(self):
+        fu = 0
+        for obj in self.collision:
+            try:
+                fu += obj.movement.mass
+            except AttributeError:
+                pass
+        return self._mass + fu
+
+    mass = property(get_mass, lambda self, value: self._mass)
+    
     def update(self, dt):
-        self.position.x += self.current_speed.x * dt
-        self.position.y += self.current_speed.y * dt
-
-        
-class UnitResponse(Response):
-    def type_response(self, other):
-        #still sooooo ugly...
-        #other is a collision object
-        other.response.unit_response(self.collision)
-
-    def unit_response(self, unit):
-        #unit is a collision object
-        self.collision.seperate_from(unit)
-
-class Unit(object):
-    collision_groups["unit"] = ["unit"]
-    def __init__(self, x, y, radius, group=collision_groups["unit"]):
-        self.position = Position(x, y)
-        self.collision = Radial(self.position, radius, group, UnitResponse())
-        self.sprite = Sprite(self.position, Resources.Image.player)
-        self.movement = Movement(self.position, 100)
-        
-
-class PlayerController:
-    def __init__(self, movement):
-        self.movement = movement
-        window.push_handlers(self)
-        
-    def on_key_press(self, symbol, modifiers):
-        if symbol == keys["up"]:
-            self.movement.current_speed.y = self.movement.walk_speed
-        elif symbol == keys["down"]:
-            self.movement.current_speed.y = -self.movement.walk_speed
-        if symbol == keys["left"]:
-            self.movement.current_speed.x = -self.movement.walk_speed
-        elif symbol == keys["right"]:
-            self.movement.current_speed.x = self.movement.walk_speed
-        
-    def on_key_release(self, symbol, modifiers):
-        if symbol == keys["up"]:
-            self.movement.current_speed.y = 0
-        elif symbol == keys["down"]:
-            self.movement.current_speed.y = 0
-        if symbol == keys["left"]:
-            self.movement.current_speed.x = 0
-        elif symbol == keys["right"]:
-            self.movement.current_speed.x = 0
-
-class Player(Unit):
-    def __init__(self, x, y, radius, group=collision_groups["unit"]):
-        super(Player, self).__init__(x, y, radius, group)
-        self.controller = PlayerController(self.movement)
-
-        #test example
-        pyglet.clock.schedule_once(self.test, 5)
-        pyglet.clock.schedule_once(self.testb, 15)
-        
-    def test(self, dt):
-        self.collision.response = Response()
+        self.position.x += (self.force.x/self.mass) * dt
+        self.position.y += (self.force.y/self.mass) * dt
+        del self.collision[:]
     
-    def testb(self, dt):
-        self.collision.response = UnitResponse()
         
-class CrateResponse(Response):
-    #what if i wanted to seperate everything regardless of type
-    #lol i've been workin on this system for like 2 weeks
-    #anyway, because unit is in the mask,
-    #the unit will call unit_response on the crate, which means the crate must implement it...
 
-    #collision_group could be set here, because depending on the group, the methods needed change
-    #which is prolly bad design
-    
-    #a group can be referenced in a mask, it could be checked for collisions, without the group knowing it will be
-    #when a group is referenced in a mask, it will be ckecked against.
-    #all objects checked against, need a type_response, which will call the specific response method on the checking object
-    
-    def unit_response(self, unit):
-        unit.seperate_from(self.collision)
-        
-        
-class Crate(object):
-    collision_groups["obstacle"] = ["unit"]
-    
-    def __init__(self, x, y, width, height, group=collision_groups["obstacle"]):
-        self.position = Position(x, y)
-        self.collision = Box(self.position, width, height, group, CrateResponse())
-        self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
-
-class PlayerCrate(Crate):
-    def __init__(self, x, y, width, height, group=collision_groups["unit"]):
-        self.position = Position(x, y)
-        self.collision = Box(self.position, width, height, group, UnitResponse())
-        self.sprite = Sprite(self.position, Resources.Image.Drops.ammunition)
-        self.movement = Movement(self.position, 100)
-        self.controller = PlayerController(self.movement)
         
 if __name__ == "__main__":
     from game import*
+    from unit import*
+    from obstacle import*
+    from player import*
     game = Game()
 
     stuffs = []
@@ -294,9 +224,9 @@ if __name__ == "__main__":
     for i in range(20):
         stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)
-    p1 = Player(400,400,24)
-    p2 = Player(600,600,24)
-    pc = PlayerCrate(150,150,32,32)
+    p1 = Player(400,300,24)
+    p2 = Player(600,300,24)
+    pc = PlayerCrate(150,300,32,32)
 
     game.run()
     

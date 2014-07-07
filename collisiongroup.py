@@ -2,7 +2,7 @@ class CollisionGroup(list):
     #will check its objects against the mask_objects.
     #mask is a list of names from other groups.
     
-    def __init__(self, mask = []):
+    def __init__(self, mask):
         list.__init__(self)
         self.mask = mask #list with names from other groups
         
@@ -17,7 +17,7 @@ class CollisionGroup(list):
         for obj in self:
             for other in self.mask_objects():
                 obj.colliding_with(other)
-                
+            
     def optimize(self, collision_groups):
         #maybe stupid but i just went with it.
         #when a group is created, mask will be a list of group names(keys in the collision_groups dict)
@@ -41,7 +41,7 @@ class CollisionGroupMe(CollisionGroup):
 
             for other in self.mask_objects():
                 self[obj].colliding_with(other)
-
+            
 class CollisionGroups(dict):
     #subclassed dict, so that a collision group is made simply by setting it in the dict
     #so that setting/getting is uniform
@@ -67,6 +67,7 @@ class CollisionGroups(dict):
     def check(self):
         for group in self.values():
             group.check()
+        
                 
 collision_groups = CollisionGroups()
 

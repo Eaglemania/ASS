@@ -1,3 +1,61 @@
+from collisionobject import*
+from unit import*
+
+class PlayerController:
+    def __init__(self, movement):
+        self.movement = movement
+        window.push_handlers(self)
+        
+    def on_key_press(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.current_speed.y = self.movement.walk_speed
+        elif symbol == keys["down"]:
+            self.movement.current_speed.y = -self.movement.walk_speed
+        if symbol == keys["left"]:
+            self.movement.current_speed.x = -self.movement.walk_speed
+        elif symbol == keys["right"]:
+            self.movement.current_speed.x = self.movement.walk_speed
+        
+    def on_key_release(self, symbol, modifiers):
+        if symbol == keys["up"]:
+            self.movement.current_speed.y = 0
+        elif symbol == keys["down"]:
+            self.movement.current_speed.y = 0
+        if symbol == keys["left"]:
+            self.movement.current_speed.x = 0
+        elif symbol == keys["right"]:
+            self.movement.current_speed.x = 0
+
+class Player(Unit):
+    def __init__(self, x, y, radius, group=collision_groups["unit"]):
+        super(Player, self).__init__(x, y, radius, group)
+        self.controller = PlayerController(self.movement)
+
+        #test example
+        pyglet.clock.schedule_once(self.test, 5)
+        pyglet.clock.schedule_once(self.testb, 15)
+        
+    def test(self, dt):
+        self.collision.response = Response()
+    
+    def testb(self, dt):
+        self.collision.response = UnitResponse()
+
+        
+if __name__ == "__main__":
+    from game import*
+    game = Game()
+
+    stuffs = []
+    for i in range(40):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    p = Player(300,300,24)
+    p1 = Player(400,300,24)
+    p2 = Player(600,300,24)
+
+    game.run()
+
+"""
 import pyglet
 from unit import Unit
 from player import Player
@@ -104,9 +162,7 @@ class Enemy(Unit):
         #print self.avoid_angle, self.speed_x(), self.speed_y()
     
     def controll(self, dt):
-        """
-        all just tests here, ai and shit
-        """
+        #all just tests here, ai and shit
         self.avoid()
         #distance to the waypoint
         dx = abs(self.x - self.waypoint_x)
@@ -207,9 +263,8 @@ class Bomber(Enemy):
         super(Bomber, self).__init__(image, x, y, radius, health, speed)
         
     def controll(self, dt):
-        """
-        ai for a charging unit, and trigger on player collision, detonation in 1 sec
-        """
+        #ai for a charging unit, and trigger on player collision, detonation in 1 sec
+        
 
         #mb get new waypoint
         if self.target != None:
@@ -286,3 +341,4 @@ def random_enemy():
         return Bomber(Resources.Image.Enemy.bomber, randint(0, window.width), randint(0, window.height), 24, 150, 100)
     else:
         return Enemy(Resources.Image.Enemy.shooter, randint(0, window.width), randint(0, window.height), 24, 100, 125)
+"""
