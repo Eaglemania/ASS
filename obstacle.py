@@ -3,10 +3,7 @@ from collisionobject import*
 collision_groups["obstacle"] = ["unit"]
 
 class ObstacleResponse(Response):
-    #VERY WRONG!!!
-    def type_response(self, other):
-        self.unit_response(other)
-        
+
     def unit_response(self, unit):
         unit.seperate_from(self.collision)
         
@@ -24,11 +21,14 @@ if __name__ == "__main__":
     from game import*
     from unit import*
     from player import*
+    from enemy import*
     game = Game()
 
     stuffs = []
-    for i in range(40):
-        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))           
+    for i in range(20):
+        stuffs.append(Enemy(randint(0,window.width), randint(0, window.height), 24))
     for i in range(20):
         stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)

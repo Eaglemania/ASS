@@ -33,7 +33,6 @@ class TestResponse(Response):
 class Player(Unit):
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
         super(Player, self).__init__(x, y, radius, group)
-        pyglet.clock.unschedule(self.controller.change)
         self.controller = PlayerController(self.movement)
 
         #tests
@@ -62,11 +61,14 @@ if __name__ == "__main__":
     from game import*
     from unit import*
     from obstacle import*
+    from enemy import*
     game = Game()
 
     stuffs = []
-    for i in range(40):
-        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))           
+    for i in range(20):
+        stuffs.append(Enemy(randint(0,window.width), randint(0, window.height), 24))
     for i in range(20):
         stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     pc = PlayerCrate(150,150,32,32)
 
     game.run()
-    
+
 """
 import pyglet
 from pyglet.gl import*

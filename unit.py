@@ -2,23 +2,15 @@ from collisionobject import *
 from random import*
 
 collision_groups["unit"] = ["unit"]
-class UnitController(object):
-    def __init__(self, movement):
-        self.movement = movement
 
-        pyglet.clock.schedule_interval(self.change, 5)
-
-    def change(self, dt):
-        speeds = [-self.movement.walk_speed, 0, self.movement.walk_speed]
-        self.movement.force.x = choice(speeds)
-        self.movement.force.y = choice(speeds)
-        
 class UnitResponse(Response):
     def type_response(self, other):
-        self.unit_response(other)
+        #other is a collision object... needs to be a response object....
+        #self is a response object... needs to be a collision object...
+        #great...
+        other.response.unit_response(self.collision)
 
     def unit_response(self, unit):
-        #unit is a collision object
         self.collision.seperate_from(unit)
 
 class Unit(object):
@@ -28,17 +20,19 @@ class Unit(object):
         self.response = UnitResponse(self.collision)
         self.sprite = Sprite(self.position, Resources.Image.player)
         self.movement = Movement(self.position, self.collision, 10000)
-        self.controller = UnitController(self.movement)
 
 if __name__ == "__main__":
     from game import*
     from obstacle import*
     from player import*
+    from enemy import*
     game = Game()
 
     stuffs = []
-    for i in range(40):
-        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))           
+    for i in range(20):
+        stuffs.append(Enemy(randint(0,window.width), randint(0, window.height), 24))
     for i in range(20):
         stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)

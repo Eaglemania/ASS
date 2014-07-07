@@ -1,57 +1,42 @@
 from collisionobject import*
 from unit import*
 
-class PlayerController:
+class EnemyController(object):
     def __init__(self, movement):
         self.movement = movement
-        window.push_handlers(self)
-        
-    def on_key_press(self, symbol, modifiers):
-        if symbol == keys["up"]:
-            self.movement.current_speed.y = self.movement.walk_speed
-        elif symbol == keys["down"]:
-            self.movement.current_speed.y = -self.movement.walk_speed
-        if symbol == keys["left"]:
-            self.movement.current_speed.x = -self.movement.walk_speed
-        elif symbol == keys["right"]:
-            self.movement.current_speed.x = self.movement.walk_speed
-        
-    def on_key_release(self, symbol, modifiers):
-        if symbol == keys["up"]:
-            self.movement.current_speed.y = 0
-        elif symbol == keys["down"]:
-            self.movement.current_speed.y = 0
-        if symbol == keys["left"]:
-            self.movement.current_speed.x = 0
-        elif symbol == keys["right"]:
-            self.movement.current_speed.x = 0
 
-class Player(Unit):
+        pyglet.clock.schedule_interval(self.change, 5)
+
+    def change(self, dt):
+        speeds = [-self.movement.walk_speed, 0, self.movement.walk_speed]
+        self.movement.force.x = choice(speeds)
+        self.movement.force.y = choice(speeds)
+
+class Enemy(Unit):
     def __init__(self, x, y, radius, group=collision_groups["unit"]):
-        super(Player, self).__init__(x, y, radius, group)
-        self.controller = PlayerController(self.movement)
+        super(Enemy, self).__init__(x, y, radius, group)
+        self.controller = EnemyController(self.movement)
 
-        #test example
-        pyglet.clock.schedule_once(self.test, 5)
-        pyglet.clock.schedule_once(self.testb, 15)
-        
-    def test(self, dt):
-        self.collision.response = Response()
-    
-    def testb(self, dt):
-        self.collision.response = UnitResponse()
 
         
 if __name__ == "__main__":
     from game import*
+    from unit import*
+    from obstacle import*
+    from player import*
     game = Game()
 
     stuffs = []
-    for i in range(40):
-        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))           
+    for i in range(20):
+        stuffs.append(Enemy(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)
-    p1 = Player(400,300,24)
-    p2 = Player(600,300,24)
+    p1 = Player(400,400,24)
+    p2 = Player(600,600,24)
+    pc = PlayerCrate(150,150,32,32)
 
     game.run()
 

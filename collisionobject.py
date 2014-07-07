@@ -34,7 +34,7 @@ class Collision(list, pyglet.event.EventDispatcher):
     def colliding_with(self, other):
         if other.type_collision(self):
             other.append(self)
-            self.dispatch_event("on_collision", other)
+            other.dispatch_event("on_collision", self)
             
     def type_collision(self, other):
         pass
@@ -51,6 +51,7 @@ class Response(object):
     def __init__(self, collision):
         self.collision = collision
         self.collision.push_handlers(self.on_collision)
+        self.collision.response = self
 
     def on_collision(self, other):
         self.type_response(other)
@@ -216,17 +217,20 @@ if __name__ == "__main__":
     from unit import*
     from obstacle import*
     from player import*
+    from enemy import*
     game = Game()
 
     stuffs = []
-    for i in range(40):
-        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))
+    for i in range(20):
+        stuffs.append(Unit(randint(0,window.width), randint(0, window.height), 24))           
+    for i in range(20):
+        stuffs.append(Enemy(randint(0,window.width), randint(0, window.height), 24))
     for i in range(20):
         stuffs.append(Crate(randint(0,window.width), randint(0, window.height), 32, 32))
     p = Player(300,300,24)
-    p1 = Player(400,300,24)
-    p2 = Player(600,300,24)
-    pc = PlayerCrate(150,300,32,32)
+    p1 = Player(400,400,24)
+    p2 = Player(600,600,24)
+    pc = PlayerCrate(150,150,32,32)
 
     game.run()
     
