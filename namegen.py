@@ -8,28 +8,32 @@ class generate():
         
     def generate_name(self, length):
         words = self.generate_words(self.load_text())
-        trigrams = self.generate_ngrams(3, words)
+        trigrams = self.generate_text_ngrams(2, words)
         word = list(trigrams[random.randint(0, len(trigrams))])       
         while len(word) < length:
             options = []
             for i in trigrams:
                 if word[-2] == i[0] and word[-1] == i[1]:
                     options.append(i)
-            try:
-                option = random.choice(options)
-                word.append(option[-1])
-            except:
-                pass            
-                
-
-
-        return "".join(word)
+            if len(options) > 0:
+                try:
+                    option = random.choice(options)
+                    word.append(option[-1])
+                except:
+                    break;
+            else:
+                word = list(trigrams[random.randint(0, len(trigrams))])
+        return "".join(word).capitalize()
                 
         
-    def generate_text(self, amount, length):
-        pass
+    """def generate_text(self, length):
+        words = self.generate_words(self.load_text())
+        trigrams = self.generate_text_ngrams(5, words)
+        text = list(trigrams[random.randint(0, len(list(trigrams)))])
+        print text
+     """   
     
-    def generate_ngrams(self, grams, words):        
+    def generate_word_ngrams(self, grams, words):        
         result = []
         for w in words:
             items = ngrams(list(w), grams)
@@ -37,6 +41,15 @@ class generate():
                 if i not in result:
                     result.append(i)            
         return result
+    def generate_text_ngrams(self, grams, words):        
+        result = []
+        items = ngrams(words, grams)
+        for i in items:
+            if i not in result:
+                result.append(i)
+        print len(result)
+        return result
+        
     
     def generate_words(self, text):
         words = []
@@ -67,3 +80,5 @@ class generate():
 stuff = generate()
 print stuff.generate_name(7)
 """
+stuff = generate()
+stuff.generate_text(5)
