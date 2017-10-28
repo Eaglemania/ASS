@@ -5,9 +5,9 @@ from pyglet.gl import *
 from random import random,randint,uniform,choice
 from math import atan2, degrees, pi, sin, cos, sqrt
 
+from shared import *
 from utils import*
 from resources import*
-from shared import *
 #import ^ for window, batch, render groups
  
 window.set_mouse_cursor(pyglet.window.ImageMouseCursor(Resources.Image.Hud.cursor, 0,8))
